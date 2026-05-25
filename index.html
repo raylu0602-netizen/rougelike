@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>肉鴿卡牌 - 網頁版</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="game-board">
+        <div id="archetype-screen">
+            <h2>🔮 選擇你的初始戰鬥流派 🔮</h2>
+            <p style="color: #bdc3c7; margin-bottom: 30px; font-size: 1.1em;">選擇流派將獲得一張強大的開局專屬卡牌，且無法在遊戲中途更換！</p>
+            <div class="archetype-container">
+                <div class="archetype-option" onclick="chooseArchetype('infinite')">
+                    <h3>🌀 無限連擊流</h3>
+                    <p>擅長抽牌與精簡牌組，利用極高的出牌頻率，千刀萬剮折磨對手。</p>
+                    <div class="starter-tag">開局贈送：【無限連鎖】</div>
+                </div>
+                <div class="archetype-option" onclick="chooseArchetype('strength')">
+                    <h3>🔥 極致力量流</h3>
+                    <p>追求一擊必殺的純粹暴力，透過累積力量讓每張基礎攻擊卡產生毀滅性傷害。</p>
+                    <div class="starter-tag">開局贈送：【狂暴戰吼】</div>
+                </div>
+                <div class="archetype-option" onclick="chooseArchetype('shield')">
+                    <h3>🛡️ 鋼鐵盾甲流</h3>
+                    <p>擁有堅不可摧的防禦，擅長將全身上下的護甲轉化為等量的衝擊力砸向敵人。</p>
+                    <div class="starter-tag">開局贈送：【鋼鐵意志】</div>
+                </div>
+                <div class="archetype-option" onclick="chooseArchetype('poison')">
+                    <h3>🧪 致命劇毒流</h3>
+                    <p>擅長使用技能牌牽制對手，不斷疊加中毒層數，看著敵人在痛苦中慢慢凋零。</p>
+                    <div class="starter-tag">開局贈送：【劇毒配方】</div>
+                </div>
+            </div>
+        </div>
+        <div class="status-bar">
+            <div id="floor-display">層數: 1</div>
+            <div id="gold-display" style="color: #f1c40f;">金幣: 0</div>
+            <div id="deck-count-display" style="color: #2ecc71;">總牌數: 10 張</div>
+            <div id="energy-display">能量: 3 / 3</div>
+        </div>
+        <div id="shop-screen" class="hidden">
+            <div id="shop-main-view">
+                <h2>🛒 神秘商店 (持有金幣: <span id="shop-gold-display">0</span>)</h2>
+                
+                <div class="shop-section">
+                    <h3>💉 服務與強化</h3>
+                    <button class="shop-btn" onclick="buyHeal()">恢復 20 血量 (20 金幣)</button>
+                    <button class="shop-btn" onclick="buyMaxHp()">最大血量 +5 (40 金幣)</button>
+                    <button class="shop-btn" style="background-color: #c0392b;" onclick="startDeleteMode()">🔧 刪除一張卡牌 (35 金幣)</button>
+                    <button class="shop-btn" id="btn-upgrade-starter" style="background-color: #d35400;" onclick="upgradeStarter()">✨ 升級專屬卡牌 (50 金幣)</button>
+                </div>
+
+                <div class="shop-section">
+                    <h3>🃏 今日商品 (點擊購買)</h3>
+                    <div id="shop-cards"></div>
+                </div>
+                
+                <button class="skip-btn" style="margin-top:20px;" onclick="leaveShop()">離開商店並前進</button>
+            </div>
+
+            <div id="shop-delete-view" class="hidden">
+                <h2 id="shop-delete-title">🔧 請選擇要永久刪除的卡牌</h2>
+                <div id="shop-deck-list"></div>
+                <button class="skip-btn" style="margin-top:20px; background-color:#7f8c8d;" onclick="cancelDeleteMode()">取消</button>
+            </div>
+        </div>
+        <div class="entities">
+            <div class="entity-box player">
+                <div>玩家</div>
+                <div id="player-hp">血量: 50 / 50</div>
+                <div id="player-block">護甲: 0</div>
+                <div id="player-strength" style="color: #e74c3c; font-size: 0.8em; margin-top: 5px;">力量: 0</div>
+                <div id="player-energy-status" style="font-size: 0.8em; margin-top: 5px; color: #f1c40f;">能量: 3 / 3</div>
+            </div>
+            <div class="entity-box enemy">
+                <div id="enemy-name">變異怪物</div>
+                <div id="enemy-hp">血量: 45 / 45</div>
+                <div id="enemy-block" style="color: #bdc3c7;">護甲: 0</div> 
+                <div id="enemy-poison" style="color: #2ecc71; font-weight: bold; display: none;">中毒: 0</div>
+                <div id="enemy-intent">意圖: 攻擊 8</div>
+            </div>
+        </div>
+
+        <div id="hand-container"></div>
+
+        <button class="end-turn" onclick="endTurn()">結束回合</button>
+        
+        <div id="log-box"></div>
+        <div id="reward-screen" class="hidden">
+            <h2>🎉 戰鬥勝利！請選擇一張卡牌加入牌組：</h2>
+            <div id="reward-cards"></div>
+            <button class="skip-btn" onclick="skipReward()">略過不拿</button>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+    
+</body>
+</html>
