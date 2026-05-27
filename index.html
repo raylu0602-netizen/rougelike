@@ -9,6 +9,49 @@
 <body>
 
     <div id="game-board">
+        <div id="top-nav" style="position: absolute; top: 15px; right: 20px; z-index: 300;">
+            <button class="shop-btn" style="background-color: #2980b9; padding: 8px 15px; margin-left: 10px;" onclick="openManual()">📖 遊戲說明</button>
+            <button class="shop-btn" style="background-color: #8e44ad; padding: 8px 15px; margin-left: 10px;" onclick="openGallery()">🎴 卡牌圖鑑</button>
+        </div>
+
+        <div id="manual-modal" class="modal hidden">
+            <div class="modal-content">
+                <span class="close-btn" onclick="closeModal('manual-modal')">&times;</span>
+                <h2>📖 遊戲說明書</h2>
+                <div class="manual-text">
+                    <h3>🎯 遊戲目標</h3>
+                    <p>選擇你的初始流派，在地牢中擊敗不斷變強的怪物，收集金幣與卡牌，挑戰你的極限層數！</p>
+                    
+                    <h3>✨ 關鍵字與機制</h3>
+                    <ul>
+                        <li><span class="exhaust-tag">⚠️ 消耗</span>：通常為強大的能力牌。打出後將掛載被動狀態，並從本局戰鬥中永久移除，不會進入棄牌堆。</li>
+                        <li><b style="color:#2ecc71;">🧪 中毒</b>：每回合結束時（敵人行動前），受到等同於層數的無視防禦傷害，隨後層數遞減 1。</li>
+                        <li><b style="color:#e74c3c;">💥 反傷</b>：攻擊帶有反傷的敵人時，會受到固定傷害（會優先扣除你的護甲，護甲不足才會扣血）。</li>
+                        <li><b style="color:#2ecc71;">🧛 吸血</b>：根據你對敵人「實際造成的傷害」比例，按比例恢復自身血量。</li>
+                    </ul>
+
+                    <h3>💡 商店與升級</h3>
+                    <p>每突破 4 層將會遭遇神秘商店。你可以購買一般卡牌、強大的傳說限定卡，或是花費 50 金幣將你的「流派專屬卡」無限升級，獲得極致的倍率加成！</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="gallery-modal" class="modal hidden">
+            <div class="modal-content" style="width: 85%; max-width: 1000px;">
+                <span class="close-btn" onclick="closeModal('gallery-modal')">&times;</span>
+                <h2>🎴 全卡牌圖鑑 <span id="gallery-count" style="font-size: 0.6em; color: #bdc3c7;"></span></h2>
+                
+                <h3 class="gallery-category-title">✨ 流派專屬卡 <span class="obtain-hint">(獲取方式：開局選擇對應流派獲得)</span></h3>
+                <div id="gallery-starter" class="cards-grid"></div>
+
+                <h3 class="gallery-category-title">👑 傳說限定卡 <span class="obtain-hint">(獲取方式：僅限「神秘商店」花費金幣購買)</span></h3>
+                <div id="gallery-exclusive" class="cards-grid"></div>
+
+                <h3 class="gallery-category-title">📜 一般卡牌 <span class="obtain-hint">(獲取方式：戰鬥勝利掉落、神秘商店購買)</span></h3>
+                <div id="gallery-regular" class="cards-grid"></div>
+            </div>
+        </div>
+
         <div id="archetype-screen">
             <h2>🔮 選擇你的初始戰鬥流派 🔮</h2>
             <p style="color: #bdc3c7; margin-bottom: 30px; font-size: 1.1em;">選擇流派將獲得一張強大的開局專屬卡牌，且無法在遊戲中途更換！</p>

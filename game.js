@@ -748,3 +748,57 @@ function updateUI() {
         }
     }
 }
+// ================= 📖 說明書與圖鑑系統 =================
+
+function openManual() {
+    document.getElementById('manual-modal').classList.remove('hidden');
+}
+
+function openGallery() {
+    // 清空三個區塊的舊內容
+    document.getElementById('gallery-starter').innerHTML = '';
+    document.getElementById('gallery-exclusive').innerHTML = '';
+    document.getElementById('gallery-regular').innerHTML = '';
+    
+    // 顯示總卡牌數
+    document.getElementById('gallery-count').innerText = `(共 ${CARD_POOL.length} 張)`;
+
+    // 讀取 CARD_POOL 並根據標籤分發到對應的區域
+    CARD_POOL.forEach(data => {
+        let cardObj = new Card(data);
+        const cardDiv = document.createElement('div');
+        cardDiv.className = 'card';
+        
+        let tagHtml = '';
+        let targetContainerId = '';
+
+        // 判斷分類並指定要塞入的 HTML 區塊
+        if (data.isStarter) {
+            tagHtml = `<div style="margin-top: 10px; font-size: 0.85em; color: #f1c40f; font-weight: bold; text-align: center; background: rgba(0,0,0,0.3); padding: 4px; border-radius: 4px;">✨ 流派專屬</div>`;
+            cardDiv.style.borderColor = "#f1c40f";
+            targetContainerId = 'gallery-starter';
+        } else if (data.isExclusive) {
+            tagHtml = `<div style="margin-top: 10px; font-size: 0.85em; color: #2ecc71; font-weight: bold; text-align: center; background: rgba(0,0,0,0.3); padding: 4px; border-radius: 4px;">👑 傳說限定</div>`;
+            cardDiv.style.borderColor = "#2ecc71";
+            targetContainerId = 'gallery-exclusive';
+        } else {
+            // 沒有特殊標籤的就是一般卡牌
+            targetContainerId = 'gallery-regular';
+        }
+
+        cardDiv.innerHTML = `
+            <div class="card-header"><span>${cardObj.name}</span><div class="card-cost">${cardObj.cost}</div></div>
+            <div class="card-desc">${cardObj.getDescription()}</div>
+            ${tagHtml}
+        `;
+        
+        // 將卡牌插入對應的分類網格中
+        document.getElementById(targetContainerId).appendChild(cardDiv);
+    });
+
+    document.getElementById('gallery-modal').classList.remove('hidden');
+}
+
+function closeModal(modalId) {
+    document.getElementById(modalId).classList.add('hidden');
+}
