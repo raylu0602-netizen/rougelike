@@ -9,7 +9,7 @@
 <body>
 
     <div id="game-board">
-        <div id="top-nav" style="position: absolute; top: 15px; right: 20px; z-index: 300;">
+        <div id="top-nav" style="display: flex; justify-content: center; gap: 15px; margin-top: 20px;">
             <button class="shop-btn" style="background-color: #2980b9; padding: 8px 15px; margin-left: 10px;" onclick="openManual()">📖 遊戲說明</button>
             <button class="shop-btn" style="background-color: #8e44ad; padding: 8px 15px; margin-left: 10px;" onclick="openGallery()">🎴 卡牌圖鑑</button>
         </div>
@@ -92,6 +92,7 @@
                     <h3>💉 服務與強化</h3>
                     <button class="shop-btn" onclick="buyHeal()">恢復 20 血量 (20 金幣)</button>
                     <button class="shop-btn" onclick="buyMaxHp()">最大血量 +5 (40 金幣)</button>
+                    <button class="shop-btn" onclick="buymaxEnergy()">最大能量 +1 (40 金幣)</button>
                     <button class="shop-btn" style="background-color: #c0392b;" onclick="startDeleteMode()">🔧 刪除一張卡牌 (35 金幣)</button>
                     <button class="shop-btn" id="btn-upgrade-starter" style="background-color: #d35400;" onclick="upgradeStarter()">✨ 升級專屬卡牌 (50 金幣)</button>
                 </div>
@@ -137,6 +138,7 @@
             <div id="reward-cards"></div>
             <button class="skip-btn" onclick="skipReward()">略過不拿</button>
         </div>
+        
     </div>
 
     <script src="game.js"></script>

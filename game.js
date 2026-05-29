@@ -137,6 +137,7 @@ const CARD_POOL = [
     // 商店限定卡
     { name: "神羅天徵", type: "attack", cost: 3, value: 40, price: 70, isExclusive: true },
     { name: "絕對防禦", type: "defend", cost: 2, value: 35, price: 60, isExclusive: true },
+    { name: "絕對領域", type: "skill" , cost: 2, value: 0, maxEnergyNum: 2,energyNum: 1, price: 75, isExclusive: true },
     { name: "貪婪之壺", type: "skill", cost: 0, value: 0, drawNum: 3, price: 90, isExclusive: true },
 
     // 流派開局專屬卡 (隱藏於商店與掉落)
@@ -147,10 +148,12 @@ const CARD_POOL = [
 ];
 
 
+e=3;
+
 // ================= 玩家與遊戲狀態 =================
 let player = {
     hp: 50, maxHp: 50, block: 0, 
-    energy: 3, maxEnergy: 3, gold: 30, strength: 0,
+    energy: e, maxEnergy: e, gold: 30, strength: 0,
     deck: [], drawPile: [], hand: [], discardPile: [],
     
     // 專屬卡無限升級次數與戰鬥狀態追蹤
@@ -201,7 +204,7 @@ function startBattle() {
     shuffle(player.drawPile);
     player.hand = [];
     player.discardPile = [];
-    player.maxEnergy = 3;
+    player.maxEnergy = e;
     player.block = 0; 
     player.strength = 0; 
     
@@ -694,6 +697,14 @@ function buyMaxHp() {
     if (player.gold >= 40) {
         player.gold -= 40; player.maxHp += 5; player.hp += 5;
         alert("💪 最大血量提升了 5 點！"); updateShopUI();
+    } else { alert("⚠️ 金幣不足！"); }
+}
+
+function buymaxEnergy() {
+    if(player.gold >= 30) {
+        player.gold -= 30; player.maxEnergy += 1; player.energy += 1;
+        e+=1;
+        alert("⚡ 能量上限提升了 1 點！"); updateShopUI();
     } else { alert("⚠️ 金幣不足！"); }
 }
 
