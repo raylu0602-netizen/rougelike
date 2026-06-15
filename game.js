@@ -139,6 +139,7 @@ const CARD_POOL = [
     { name: "絕對防禦", type: "defend", cost: 2, value: 35, price: 60, isExclusive: true },
     { name: "絕對領域", type: "skill" , cost: 2, value: 0, maxEnergyNum: 2,energyNum: 1, price: 75, isExclusive: true },
     { name: "貪婪之壺", type: "skill", cost: 0, value: 0, drawNum: 3, price: 90, isExclusive: true },
+    { name: "催化劑", type: "skill", cost: 2, value: 0, price: 70, isExclusive: true },
 
     // 流派開局專屬卡 (隱藏於商店與掉落)
     { name: "無限連鎖", type: "power", cost: 0, value: 0, price: 0, isExclusive: true, isStarter: true },
