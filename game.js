@@ -14,8 +14,7 @@ function shuffle(array) {
 
 // ================= 卡牌系統 (Data-Driven) =================
 class Card {
-    // ✨ 使用物件解構，這樣無論參數加到多少個、順序怎麼換，都絕對不會認錯人！
-    constructor({ name, type, cost, value = 0, drawNum = 0, energyNum = 0, maxEnergyNum = 0, healNum = 0, strengthNum = 0, lifestealRate = 0, shieldConsume = 0, shieldMult = 0, poisonNum = 0, detonatePoisonMult = 0 }) {
+    constructor({ name, type, cost, value = 0, drawNum = 0, energyNum = 0, maxEnergyNum = 0, healNum = 0, strengthNum = 0, lifestealRate = 0, shieldConsume = 0, shieldMult = 0, poisonNum = 0, detonatePoisonMult = 0 , goldNum =0 , goldAttack = 0}) {
         this.name = name;
         this.type = type;
         this.cost = cost;
@@ -30,6 +29,8 @@ class Card {
         this.shieldMult = shieldMult;       
         this.poisonNum = poisonNum;
         this.detonatePoisonMult = detonatePoisonMult;
+        this.goldNum = goldNum;
+        this.goldAttack = goldAttack;
     }
 
     getDescription() {
@@ -74,11 +75,16 @@ class Card {
                 let consumePercent = Math.round(this.shieldConsume * 100);
                 desc.push(`消耗 ${consumePercent}% 護甲，造成 <span style="color:#e74c3c; font-weight:bold;">${total}</span> 傷害`);
                 desc.push(`<span style="font-size: 0.8em; color: #bdc3c7;">(基礎 ${currentDmg} + 護甲轉換 ${bonus})</span>`);
-            } else if ((player.strength || 0) > 0) {
+            }
+            else if (this.goldAttack > 0) {
+                let bonus = player.gold * this.goldAttack;
+                desc.push(`造成 <span style="color:#e74c3c; font-weight:bold;">${currentDmg + bonus}</span> 傷害 <span style="font-size: 0.8em; color: #bdc3c7;">(基礎 ${currentDmg} + 金幣加成 ${bonus})</span>`);
+            }else if ((player.strength || 0) > 0) {
                 desc.push(`造成 <span style="color:#e74c3c; font-weight:bold;">${currentDmg}</span> 傷害`);
             } else {
                 desc.push(`造成 ${this.value} 傷害`);
             }
+
         }
         
         if (this.type === 'defend') desc.push(`獲得 ${this.value} 護甲`);
@@ -96,7 +102,7 @@ class Card {
         if (this.energyNum > 0) desc.push(`回能 ${this.energyNum}`);
         if (this.maxEnergyNum > 0) desc.push(`能量上限 +${this.maxEnergyNum}`);
         if (this.strengthNum > 0) desc.push(`獲得 ${this.strengthNum} 點力量`);
-        
+        if (this.goldNum > 0) desc.push(`獲得 ${this.goldNum} 金幣`);
         return desc.join('<br>');
     }
 }
@@ -140,6 +146,7 @@ const CARD_POOL = [
     { name: "絕對領域", type: "skill" , cost: 2, value: 0, maxEnergyNum: 2,energyNum: 1, price: 75, isExclusive: true },
     { name: "貪婪之壺", type: "skill", cost: 0, value: 0, drawNum: 3, price: 90, isExclusive: true },
     { name: "催化劑", type: "skill", cost: 2, value: 0, price: 70, isExclusive: true },
+    { name: "金錢攻擊", type: "attack", cost: 1, value: 5, goldAttack: 1, price: 60, isExclusive: true },
 
     // 流派開局專屬卡 (隱藏於商店與掉落)
     { name: "無限連鎖", type: "power", cost: 0, value: 0, price: 0, isExclusive: true, isStarter: true },
@@ -284,6 +291,10 @@ function playCard(index) {
                 logMessage(`🛡️ 發動盾牌效果！消耗了 ${consumedBlock} 點護甲，轉化為 ${bonusDmg} 點額外傷害！`);
             }
             
+            if (card.goldAttack > 0) {
+                let bonus = player.gold * card.goldAttack;
+                totalDmg += bonus;
+            }
             // 計算護甲抵銷並造成傷害
             let actualEnemyDmg = Math.max(0, totalDmg - enemy.block);
             enemy.block = Math.max(0, enemy.block - totalDmg);
