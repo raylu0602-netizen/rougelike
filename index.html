@@ -9,9 +9,12 @@
 <body>
 
     <div id="game-board">
-        <div id="top-nav" style="display: flex; justify-content: center; gap: 15px; margin-top: 20px;">
+        <div id="top-nav" style="display: flex; justify-content: center; gap: 15px; margin-top: 20px; flex-wrap: wrap;">
             <button class="shop-btn" style="background-color: #2980b9; padding: 8px 15px; margin-left: 10px;" onclick="openManual()">📖 遊戲說明</button>
             <button class="shop-btn" style="background-color: #8e44ad; padding: 8px 15px; margin-left: 10px;" onclick="openGallery()">🎴 卡牌圖鑑</button>
+            <button class="shop-btn" style="background-color: #f39c12; padding: 8px 15px; margin-left: 10px;" onclick="openDeck()">🗂️ 我的牌組</button>
+            <button class="shop-btn" style="background-color: #16a085; padding: 8px 15px; margin-left: 10px;" onclick="exportSave()">💾 導出存檔</button>
+            <button class="shop-btn" style="background-color: #c0392b; padding: 8px 15px; margin-left: 10px;" onclick="importSave()">📂 匯入存檔</button>
         </div>
 
         <div id="manual-modal" class="modal hidden">
@@ -52,6 +55,28 @@
             </div>
         </div>
 
+        <div id="deck-modal" class="modal hidden">
+            <div class="modal-content" style="width: 85%; max-width: 1000px;">
+                <span class="close-btn" onclick="closeModal('deck-modal')">&times;</span>
+                <h2>🗂️ 目前牌組 <span id="deck-count-title" style="font-size: 0.6em; color: #bdc3c7;"></span></h2>
+                
+                <div id="deck-grid" class="cards-grid"></div>
+            </div>
+        </div>
+
+        <div id="save-modal" class="modal hidden">
+            <div class="modal-content" style="width: 90%; max-width: 600px; text-align: center;">
+                <span class="close-btn" onclick="closeModal('save-modal')">&times;</span>
+                <h2 id="save-modal-title" style="color: #f1c40f;">💾 存檔/匯入</h2>
+                <p id="save-modal-desc" style="color: #bdc3c7; margin-bottom: 15px;">請複製以下代碼保存，或貼上你的存檔代碼進行匯入：</p>
+                <textarea id="save-textarea" style="width: 100%; height: 180px; padding: 10px; font-family: monospace; font-size: 0.9em; border-radius: 5px; border: 1px solid #7f8c8d; background-color: #1e272e; color: #ecf0f1; resize: vertical;" spellcheck="false"></textarea>
+                <div style="margin-top: 20px; display: flex; justify-content: center; gap: 15px;">
+                    <button id="save-copy-btn" class="shop-btn" style="background-color: #27ae60;" onclick="copySaveText()">📋 複製代碼</button>
+                    <button id="save-import-btn" class="shop-btn hidden" style="background-color: #e67e22;" onclick="executeImport()">🚀 確認匯入</button>
+                </div>
+            </div>
+        </div>
+
         <div id="archetype-screen">
             <h2>🔮 選擇你的初始戰鬥流派 🔮</h2>
             <p style="color: #bdc3c7; margin-bottom: 30px; font-size: 1.1em;">選擇流派將獲得一張強大的開局專屬卡牌，且無法在遊戲中途更換！</p>
@@ -77,6 +102,7 @@
                     <div class="starter-tag">開局贈送：【劇毒配方】</div>
                 </div>
             </div>
+            <button class="shop-btn" style="margin-top: 40px; background-color: #c0392b; font-size: 1.2em; padding: 12px 30px; box-shadow: 0 4px 10px rgba(0,0,0,0.5);" onclick="importSave()">📂 匯入存檔繼續遊戲</button>
         </div>
         <div class="status-bar">
             <div id="floor-display">層數: 1</div>
@@ -134,9 +160,16 @@
         
         <div id="log-box"></div>
         <div id="reward-screen" class="hidden">
-            <h2>🎉 戰鬥勝利！請選擇一張卡牌加入牌組：</h2>
+            <h2 style="font-size: 2.2em; margin-bottom: 10px; color: #f1c40f;">🎉 戰鬥結算 🎉</h2>
+            <div id="settlement-info" style="font-size: 1.2em; color: #ecf0f1; margin-bottom: 20px; text-align: center; line-height: 1.6;"></div>
+            
+            <h3 id="reward-title" style="color: #ecf0f1; margin-bottom: 15px;">🎁 請選擇一張卡牌加入牌組：</h3>
             <div id="reward-cards"></div>
-            <button class="skip-btn" onclick="skipReward()">略過不拿</button>
+            
+            <div style="display: flex; gap: 20px; margin-top: 30px;">
+                <button class="skip-btn" style="background-color: #2ecc71; font-size: 1.2em; padding: 12px 25px;" onclick="goToNextFloor()">⚔️ 前往下一關</button>
+                <button class="skip-btn" style="background-color: #f39c12; font-size: 1.2em; padding: 12px 25px;" onclick="goToShop()">🛒 前往商店</button>
+            </div>
         </div>
         
     </div>

@@ -14,7 +14,7 @@ function shuffle(array) {
 
 // ================= 卡牌系統 (Data-Driven) =================
 class Card {
-    constructor({ name, type, cost, value = 0, drawNum = 0, energyNum = 0, maxEnergyNum = 0, healNum = 0, strengthNum = 0, lifestealRate = 0, shieldConsume = 0, shieldMult = 0, poisonNum = 0, detonatePoisonMult = 0 , goldNum =0 , goldAttack = 0}) {
+    constructor({ name, type, cost, value = 0, drawNum = 0, energyNum = 0, maxEnergyNum = 0, healNum = 0, strengthNum = 0, lifestealRate = 0, shieldConsume = 0, shieldMult = 0, poisonNum = 0, detonatePoisonMult = 0 , goldNum =0 , goldAttack = 0, isExhaust = false}) {
         this.name = name;
         this.type = type;
         this.cost = cost;
@@ -31,13 +31,14 @@ class Card {
         this.detonatePoisonMult = detonatePoisonMult;
         this.goldNum = goldNum;
         this.goldAttack = goldAttack;
+        this.isExhaust = isExhaust;
     }
 
     getDescription() {
         let desc = [];
-        if (this.type === 'power') {
+        if (this.type === 'power' || this.isExhaust) {
             desc.push(`<span class="exhaust-tag">⚠️ 消耗</span>`);
-            desc.push(`永久增益`);
+            if (this.type === 'power') desc.push(`永久增益`);
         }
         
         let currentLevel = player.starterUpgradeLevel + 1; 
@@ -65,8 +66,7 @@ class Card {
             if (this.detonatePoisonMult > 0) {
                 let currentPoison = enemy ? enemy.poison : 0;
                 let bonus = currentPoison * this.detonatePoisonMult;
-                let total = currentDmg + bonus;
-                desc.push(`清除敵人所有中毒，每層造成 ${this.detonatePoisonMult} 點額外傷害。<br>造成 <span style="color:#e74c3c; font-weight:bold;">${total}</span> 傷害 <span style="font-size: 0.8em; color: #bdc3c7;">(基礎 ${currentDmg} + 引爆 ${bonus})</span>`);
+                desc.push(`清除敵人所有中毒，每層造成 ${this.detonatePoisonMult} 點<span style="color:#e67e22; font-weight:bold;">無視護甲</span>的額外傷害。<br>引爆傷害: <span style="color:#e74c3c; font-weight:bold;">${bonus}</span>`);
             }
             else if (this.shieldConsume > 0) {
                 let consumedBlock = Math.floor((player.block || 0) * this.shieldConsume);
@@ -129,6 +129,7 @@ const CARD_POOL = [
     { name: "過載模組", type: "power", cost: 2, value: 0, maxEnergyNum: 1, price: 50 },
     { name: "戰鬥冥想", type: "skill", cost: 1, value: 0, drawNum: 2, energyNum: 1, price: 55 },
     { name: "無中生有", type: "skill", cost: 0, value: 0, drawNum: 1, energyNum: 1, price: 45 },
+    { name: "煉金術", type: "skill", cost: 1, value: 0, goldNum: 15, isExhaust: true, price: 60 },
     
     // 吸血與護甲轉換流派
     { name: "吸血劍", type: "attack", cost: 2, value: 8, lifestealRate: 0.5, price: 50 },
@@ -180,7 +181,7 @@ const DELETE_COST = 35;
 // ================= 核心戰鬥邏輯 =================
 function chooseArchetype(archetypeType) {
     player.deck = [];
-    for(let i = 0; i < 4; i++) {
+    for(let i = 0; i < 3; i++) {
         player.deck.push(createCard("打擊"));
         player.deck.push(createCard("防禦"));
     }
@@ -189,16 +190,20 @@ function chooseArchetype(archetypeType) {
 
     if (archetypeType === 'infinite') {
         player.deck.push(createCard("無限連鎖"));
+        player.deck.push(createCard("飛刀")); // 無限流特色：0費攻擊
         logMessage("🌀 你選擇了【無限連擊流】！專屬卡已加入牌組。");
     } else if (archetypeType === 'strength') {
         player.deck.push(createCard("狂暴戰吼"));
+        player.deck.push(createCard("吸血劍")); // 力量流特色：高傷害吸血
         logMessage("🔥 你選擇了【極致力量流】！專屬卡已加入牌組。");
     } else if (archetypeType === 'shield') {
         player.deck.push(createCard("鋼鐵意志"));
+        player.deck.push(createCard("背水一戰")); // 盾甲流特色：0費護甲轉換傷害
         logMessage("🛡️ 你選擇了【鋼鐵盾甲流】！專屬卡已加入牌組。");
     }
     else if (archetypeType === 'poison') {
         player.deck.push(createCard("劇毒配方"));
+        player.deck.push(createCard("致命塗毒")); // 劇毒流特色：1費技能疊毒
         logMessage("🧪 你選擇了【致命劇毒流】！專屬卡已加入牌組。");
     }
     document.getElementById('archetype-screen').classList.add('hidden');
@@ -254,7 +259,7 @@ function playCard(index) {
         player.energy -= card.cost;
         player.hand.splice(index, 1); 
         
-        if (card.type !== 'power') {
+        if (card.type !== 'power' && !card.isExhaust) {
             player.discardPile.push(card);
         }
 
@@ -277,9 +282,9 @@ function playCard(index) {
             let totalDmg = card.value + player.strength; 
             if (card.detonatePoisonMult > 0 && enemy.poison > 0) {
                 let detonateDmg = enemy.poison * card.detonatePoisonMult;
-                totalDmg += detonateDmg; // 加進總傷害
+                enemy.hp -= detonateDmg; // 無視護甲，直接扣真實血量
                 
-                logMessage(`💥 引爆毒素！消耗了 ${enemy.poison} 層中毒，轉化為 ${detonateDmg} 點額外傷害！`);
+                logMessage(`💥 引爆毒素！消耗了 ${enemy.poison} 層中毒，造成 ${detonateDmg} 點【無視護甲】的真實傷害！`);
                 enemy.poison = 0; // 清除敵人的中毒層數
             }
             // 護甲轉換傷害
@@ -364,6 +369,10 @@ function playCard(index) {
             player.strength += card.strengthNum;
             logMessage(`💪 力量提升！目前的攻擊力額外 +${player.strength}`);
         }
+        if (card.goldNum > 0) {
+            player.gold += card.goldNum;
+            logMessage(`💰 獲得了 ${card.goldNum} 金幣！(目前: ${player.gold})`);
+        }
 
         // 無限流被動：每打一張牌造成無視反傷的傷害
         if (player.infiniteChainLevel > 0) {
@@ -420,25 +429,40 @@ function endTurn() {
 function checkWinCondition() {
     if (enemy.hp <= 0) {
         let goldEarned = Math.floor(Math.random() * 11) + 15;
+        let hpRestored = 10;
+        let maxHpIncreased = 0;
         
         if (enemy.isElite) {
             goldEarned += 25;
+            maxHpIncreased = 3;
+            hpRestored += 3;
             player.maxHp += 3;
-            player.hp += 3;
             logMessage(`🏆 擊敗菁英怪物！最大血量提升 3 點！`);
         }
         
         player.gold += goldEarned;
         logMessage(`🎉 戰鬥勝利！總共獲得 ${goldEarned} 金幣。`);
-        player.hp = Math.min(player.maxHp, player.hp + 10);
-        showRewardScreen();
+        
+        let actualHeal = Math.min(player.maxHp - player.hp, hpRestored);
+        player.hp += actualHeal;
+        
+        showRewardScreen(goldEarned, actualHeal, maxHpIncreased);
     }
 }
 
-function showRewardScreen() {
+function showRewardScreen(goldEarned, actualHeal, maxHpIncreased) {
     const rewardScreen = document.getElementById('reward-screen');
     const rewardCardsContainer = document.getElementById('reward-cards');
     rewardCardsContainer.innerHTML = ''; 
+    
+    document.getElementById('reward-title').innerText = '🎁 請選擇一張卡牌加入牌組：';
+    
+    let infoHtml = `💰 獲得金幣：<span style="color: #f1c40f;">${goldEarned}</span> &nbsp;&nbsp; `;
+    infoHtml += `💖 恢復血量：<span style="color: #2ecc71;">${actualHeal}</span>`;
+    if (maxHpIncreased > 0) {
+        infoHtml += ` &nbsp;&nbsp; 💪 最大血量提升：<span style="color: #e74c3c;">${maxHpIncreased}</span>`;
+    }
+    document.getElementById('settlement-info').innerHTML = infoHtml;
     
     // 一般掉落不過濾 isExclusive，因為那些都不會在掉落池
     let availablePool = CARD_POOL.filter(c => !c.isExclusive);
@@ -449,7 +473,12 @@ function showRewardScreen() {
         let cardObj = createCard(cardData.name);
         const cardDiv = document.createElement('div');
         cardDiv.className = 'card';
-        cardDiv.onclick = () => selectReward(cardObj); 
+        cardDiv.onclick = () => {
+            player.deck.push(cardObj);
+            document.getElementById('reward-title').innerHTML = `✅ 已選擇卡牌：<span style="color: #2ecc71;">【${cardObj.name}】</span>`;
+            rewardCardsContainer.innerHTML = ''; // 隱藏卡牌選擇
+            updateUI(); // 更新牌組張數等資訊
+        }; 
         cardDiv.innerHTML = `
             <div class="card-header"><span>${cardObj.name}</span><div class="card-cost">${cardObj.cost}</div></div>
             <div class="card-desc">${cardObj.getDescription()}</div>
@@ -457,26 +486,19 @@ function showRewardScreen() {
         rewardCardsContainer.appendChild(cardDiv);
     });
     rewardScreen.classList.remove('hidden');
+    updateUI(); // 確保勝利後的血量金幣反映在背後 UI 上
 }
 
-function selectReward(card) {
-    player.deck.push(card);
-    proceedToNextFloor();
-}
-
-function skipReward() {
-    proceedToNextFloor();
-}
-
-function proceedToNextFloor() {
+function goToNextFloor() {
     document.getElementById('reward-screen').classList.add('hidden');
     floor++;
-    // 每 4 層進商店
-    if (floor % 4 === 0) {
-        enterShop();
-    } else {
-        prepareNextBattle();
-    }
+    prepareNextBattle();
+}
+
+function goToShop() {
+    document.getElementById('reward-screen').classList.add('hidden');
+    floor++;
+    enterShop();
 }
 
 function prepareNextBattle() {
@@ -822,6 +844,140 @@ function openGallery() {
     document.getElementById('gallery-modal').classList.remove('hidden');
 }
 
+function openDeck() {
+    const deckGrid = document.getElementById('deck-grid');
+    deckGrid.innerHTML = '';
+    
+    document.getElementById('deck-count-title').innerText = `(共 ${player.deck.length} 張)`;
+
+    // 依照類型排序牌組
+    let sortedDeck = [...player.deck].sort((a, b) => {
+        if (a.type !== b.type) return a.type.localeCompare(b.type);
+        return a.name.localeCompare(b.name);
+    });
+
+    sortedDeck.forEach(card => {
+        const cardDiv = document.createElement('div');
+        cardDiv.className = 'card';
+        
+        let tagHtml = '';
+        if (card.name.startsWith("無限連鎖") || card.name.startsWith("狂暴戰吼") || card.name.startsWith("鋼鐵意志") || card.name.startsWith("劇毒配方")) {
+            tagHtml = `<div style="margin-top: 10px; font-size: 0.85em; color: #f1c40f; font-weight: bold; text-align: center; background: rgba(0,0,0,0.3); padding: 4px; border-radius: 4px;">✨ 流派專屬</div>`;
+            cardDiv.style.borderColor = "#f1c40f";
+        }
+
+        cardDiv.innerHTML = `
+            <div class="card-header"><span>${card.name}</span><div class="card-cost">${card.cost}</div></div>
+            <div class="card-desc">${card.getDescription()}</div>
+            ${tagHtml}
+        `;
+        deckGrid.appendChild(cardDiv);
+    });
+
+    document.getElementById('deck-modal').classList.remove('hidden');
+}
+
 function closeModal(modalId) {
     document.getElementById(modalId).classList.add('hidden');
+}
+
+// ================= 💾 存檔系統 =================
+function exportSave() {
+    if (!player.deck || player.deck.length === 0) {
+        alert("⚠️ 目前沒有進行中的遊戲！");
+        return;
+    }
+    
+    const saveData = {
+        floor: floor,
+        e: e,
+        player: {
+            hp: player.hp,
+            maxHp: player.maxHp,
+            gold: player.gold,
+            starterUpgradeLevel: player.starterUpgradeLevel,
+            deck: player.deck
+        }
+    };
+    
+    const saveString = btoa(encodeURIComponent(JSON.stringify(saveData)));
+    
+    document.getElementById('save-modal-title').innerText = '💾 導出存檔代碼';
+    document.getElementById('save-modal-desc').innerText = '請全選複製以下代碼並妥善保存：';
+    document.getElementById('save-textarea').value = saveString;
+    document.getElementById('save-textarea').readOnly = true;
+    
+    document.getElementById('save-copy-btn').classList.remove('hidden');
+    document.getElementById('save-import-btn').classList.add('hidden');
+    
+    document.getElementById('save-modal').classList.remove('hidden');
+}
+
+function importSave() {
+    document.getElementById('save-modal-title').innerText = '📂 匯入存檔代碼';
+    document.getElementById('save-modal-desc').innerText = '請在下方貼上你的存檔代碼：';
+    document.getElementById('save-textarea').value = '';
+    document.getElementById('save-textarea').readOnly = false;
+    
+    document.getElementById('save-copy-btn').classList.add('hidden');
+    document.getElementById('save-import-btn').classList.remove('hidden');
+    
+    document.getElementById('save-modal').classList.remove('hidden');
+}
+
+function copySaveText() {
+    const textarea = document.getElementById('save-textarea');
+    textarea.select();
+    textarea.setSelectionRange(0, 99999); // 給手機瀏覽器使用
+    try {
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(textarea.value).then(() => {
+                alert("✅ 代碼已複製到剪貼簿！");
+            });
+        } else {
+            document.execCommand("copy");
+            alert("✅ 代碼已複製！");
+        }
+    } catch(err) {
+        alert("⚠️ 複製失敗，請手動全選複製代碼。");
+    }
+}
+
+function executeImport() {
+    let saveString = document.getElementById('save-textarea').value.trim();
+    if (!saveString) {
+        alert("⚠️ 請輸入存檔代碼！");
+        return;
+    }
+    
+    try {
+        const saveData = JSON.parse(decodeURIComponent(atob(saveString)));
+        
+        // 恢復狀態
+        floor = saveData.floor;
+        e = saveData.e;
+        
+        player.hp = saveData.player.hp;
+        player.maxHp = saveData.player.maxHp;
+        player.gold = saveData.player.gold;
+        player.starterUpgradeLevel = saveData.player.starterUpgradeLevel || 0;
+        
+        // 將一般物件轉換回 Card 實例
+        player.deck = saveData.player.deck.map(cardData => new Card(cardData));
+        
+        // 隱藏所有選單
+        document.querySelectorAll('.modal').forEach(m => m.classList.add('hidden'));
+        document.getElementById('archetype-screen').classList.add('hidden');
+        document.getElementById('shop-screen').classList.add('hidden');
+        document.getElementById('reward-screen').classList.add('hidden');
+        
+        // 重新開始當前樓層的戰鬥
+        logMessage("📂 存檔匯入成功！重新載入關卡...");
+        prepareNextBattle();
+        
+        alert("✅ 存檔匯入成功！遊戲已恢復。");
+    } catch (error) {
+        alert("❌ 存檔代碼無效或已損毀！請確認代碼是否完整複製。");
+        console.error(error);
+    }
 }
